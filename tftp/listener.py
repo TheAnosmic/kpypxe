@@ -56,6 +56,10 @@ def tftp_serve(menu_file_handler=None):
                 file_to_return = get_file_to_serve(packet.source_file, menu_file_handler)
             else:
                 file_to_return = get_file_to_serve(packet.source_file)
+
+            if not file_to_return or not os.path.exists(file_to_return):
+                logger.error('requested file not exists: %s' % file_to_return)
+                return
             logger.info('served: %s' % file_to_return)
 
             blksize = int(get_option('blksize', 512))

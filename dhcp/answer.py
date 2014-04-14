@@ -21,7 +21,7 @@ DHCP_TYPE_ACK_OPTION = ("DHCP_message_type", MESSAGE_TYPE_ACK)
 
 SUBNET_MASK_OPTION = ("Subnet_Mask", _IP_BIN(SUBNET_MASK))
 
-# ("TFTP_server_name", "192.168.56.1") not needed.
+#TFTP_SERVE_NAME_OPTION = ("TFTP_server_name", "192.168.56.1") # not needed.
 
 def append_options(packet, options):
     for option in options:
@@ -79,9 +79,9 @@ def create_ack(request_packet):
     ack_packet.client_addr = _IP_BIN(client_ip)
     ack_packet.server_addr = _IP_BIN(SERVER_IP)
     ack_packet.options = []
-    for option in ack_packet.options:
-        if option.code == 'DHCP_message_type':
-            option.value.data = MESSAGE_TYPE_ACK
+    # for option in ack_packet.options:
+    #     if option.code == 'DHCP_message_type':
+    #         option.value.data = MESSAGE_TYPE_ACK
     options = [SERVER_IDENTIFIER_OPTION,
                CLASS_IDENTIFIER_OPTION,
                DHCP_TYPE_ACK_OPTION,

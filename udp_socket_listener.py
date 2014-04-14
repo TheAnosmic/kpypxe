@@ -25,3 +25,5 @@ def serve(port,
             handler(s, address, packet)
         except KeyboardInterrupt:
             exit()
+        except socket.error:
+            pass

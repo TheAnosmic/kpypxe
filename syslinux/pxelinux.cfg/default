@@ -1,0 +1,33 @@
+default menu.c32
+prompt 0
+
+
+menu color border 		47;37 		#ffffffffff #ffffffffff none
+menu color screen 		47;30 		#ffffffffff #ffffffffff none
+menu color title  		1;47;30		#99999999 #99999999 none
+menu color tabmsg  		0;47;30		#ffffffffff #ffffffffff none
+menu color sel  		0;1;4;47;30	#ffffffff #ff808080 none
+menu color unsel  		0;47;30		#ffffffffff #ffffffffff none
+menu color timeout_msg	0;47;30     #80ffffff #00000000 none
+menu color timeout		0;1;47;30   #ffffffffff #ffffffffff none
+menu color cmdmark 		0;47;30		#ffffffffff #ffffffffff none
+menu color cmdline 		0;47;30		#ffffffffff #ffffffffff none
+menu color msg07 		0;47;30		#ffffffffff #ffffffffff none
+
+
+menu title KPYPXE Boot menu
+timeout 600
+#f1 help.txt
+f2 about.txt
+
+label sample
+  menu label Boot iso from network
+  menu default
+  kernel memdisk
+  INITRD http://192.168.56.1:8000/isoboot.iso
+  APPEND iso raw
+  
+label other sample
+  menu label I've just copy pasted it from somewhere
+  kernel vmlinuz
+  append initrd=cpio2.gz badhardware rdinit=/init
