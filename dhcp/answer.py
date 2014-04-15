@@ -23,7 +23,10 @@ SUBNET_MASK_OPTION = ("Subnet_Mask", _IP_BIN(SUBNET_MASK))
 
 #TFTP_SERVE_NAME_OPTION = ("TFTP_server_name", "192.168.56.1") # not needed.
 
-def append_options(packet, options):
+def append_options(packet, options, append_end_option):
+    if append_end_option:
+        options.append(END_OPTION)
+
     for option in options:
         packet.options.append(
             Container(code=option[0],
@@ -32,18 +35,22 @@ def append_options(packet, options):
 
 
 def build_discover_answer(request_packet,
-                          ip_generator=generate_ip,
-                          options_addon=None):
+                          offer_boot=True,
+                          ip_generator=generate_ip):
+    # if not offer_boot and not GENERATE_IPS:
+    #     return None # It will make client wait longer
+
     options = [
         SERVER_IDENTIFIER_OPTION,
-        CLASS_IDENTIFIER_OPTION,
         DHCP_TYPE_OFFER_OPTION
     ]
+
+    if offer_boot:
+        options.append(CLASS_IDENTIFIER_OPTION)
+        options.append(BOOT_FILE_NAME_OPTION) # Required if GENERATE_IPS, but makes things faster anyway
+
     if GENERATE_IPS:
         options.append(SUBNET_MASK_OPTION)
-    if options_addon:
-        options.extend(options_addon)
-    options.append(END_OPTION)
 
     answer_packet = request_packet.copy()
     if GENERATE_IPS:
@@ -54,19 +61,20 @@ def build_discover_answer(request_packet,
 
     answer_packet.opcode = "BootReply"
     answer_packet.options = []
-    append_options(answer_packet, options)
-    logger.info('Answering Discover')
+    append_options(answer_packet, options, True)
     return answer_packet
 
 
-def create_ack(request_packet):
+def create_ack(request_packet, offer_boot):
     def get_option(code, default):
         for option in request_packet.options:
             if code == option.code:
                 return option.value.data
         return default
+
     if not GENERATE_IPS and request_packet.flags.boardcast:
         return
+
     ack_packet = request_packet.copy()
     ack_packet.opcode = "BootReply"
 
@@ -79,19 +87,18 @@ def create_ack(request_packet):
     ack_packet.client_addr = _IP_BIN(client_ip)
     ack_packet.server_addr = _IP_BIN(SERVER_IP)
     ack_packet.options = []
-    # for option in ack_packet.options:
-    #     if option.code == 'DHCP_message_type':
-    #         option.value.data = MESSAGE_TYPE_ACK
+
     options = [SERVER_IDENTIFIER_OPTION,
-               CLASS_IDENTIFIER_OPTION,
-               DHCP_TYPE_ACK_OPTION,
+               DHCP_TYPE_ACK_OPTION]
+
+    if offer_boot:
+        options.extend([
                BOOT_FILE_NAME_OPTION,
-               END_OPTION]
-    append_options(ack_packet, options)
-    # ack_packet.options = [option for option in ack_packet.options if \
-    #                      option.code not in ('User_Class_Information',
-    #                                          'Parameter_request_list',
-    #                                          'Requested_IP_Address')]
+               CLASS_IDENTIFIER_OPTION,
+        ])
+
+    append_options(ack_packet, options, True)
+
     logger.info('Sending ack')
     return ack_packet
 

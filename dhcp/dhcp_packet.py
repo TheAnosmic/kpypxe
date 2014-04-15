@@ -148,6 +148,13 @@ class IpAddressAdapter(Adapter):
         else:
             return ".".join("%d" % (b,) for b in obj)
 
+class DHCPClientMacAdapter(Adapter):
+    def _encode(self, obj, context):
+        obj = ''.join([str(chr(int(i, 16))) for i in obj.split(':')])
+        return obj + '\x00' * (16 - context.hardware_address_length)
+
+    def _decode(self, obj, context):
+        return ":".join('%02X' % ord(i) for i in obj[:context.hardware_address_length])
 
 def IpAddress(name):
     return IpAddressAdapter(Bytes(name, 4))
@@ -181,7 +188,8 @@ dhcp_header = Struct(
     IpAddress("your_addr"),
     IpAddress("server_addr"),
     IpAddress("gateway_addr"),
-    Bytes("client_hardware_addr", 16),
+    DHCPClientMacAdapter(
+        Bytes("client_hardware_addr", 16)),
     Bytes("server_host_name", 64),
     Bytes("boot_filename", 128),
     # BOOTP/DHCP options
